@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs';
 
@@ -8,21 +8,14 @@ import { Observable } from 'rxjs';
 })
 export class AdminDataService {
 
- dataURL: string = 'http://localhost:8080/app/admin';
-
-
+  dataURL: string = 'http://localhost:8080/app/user';
 
   constructor(private http: HttpClient,
               private authServ: AuthService) { }
 
   getAdminData(): Observable<string> {
 
-    let headers = new HttpHeaders()
-                  .set('Authorization', this.authServ.getTokenToRest())
-
-    return this.http.get<string>(this.dataURL,
-      {headers});
-
+    return this.http.head<string>(this.dataURL);
   }
 
 

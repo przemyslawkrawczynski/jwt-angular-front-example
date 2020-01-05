@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import * as jwt_decode from 'jwt-decode';
 
 
+
 const SIGNUP_URL: string = 'http://localhost:8080/users/signin';
 
 @Injectable({
@@ -12,47 +13,35 @@ const SIGNUP_URL: string = 'http://localhost:8080/users/signin';
 })
 export class AuthService {
 
-  jwtTokenInfo: JwtTokenInfo = new JwtTokenInfo();
+  userJwtInfo: JwtUserInformation = new JwtUserInformation();
 
 
   constructor(private http: HttpClient) { }
 
-
-
-  getAuth(email: string, password: string): Observable<JwtTokenDto> {
-    let data: Observable<JwtTokenDto> = this.http.post<JwtTokenDto>(SIGNUP_URL, this.createAuthData(email, password));
-    data.subscribe(jwtToken => {
-      this.jwtTokenInfo.setToken(jwtToken);
-    })
-    this.getInfoFromToken();
-    console.log(JSON.stringify(this.jwtTokenInfo));
-    return data;
+  getAuth(username: string, password: string): Observable<JwtTokenDto> {
+    return this.http.post<JwtTokenDto>(SIGNUP_URL, this.createAuthData(username, password));
   }
 
-  getInfoFromToken() {
-    let val = jwt_decode(this.jwtTokenInfo.jwtToken);
-    this.jwtTokenInfo.name = val.sub;
-    this.jwtTokenInfo.hasRole = val.auth[0].authority;
-    this.jwtTokenInfo.expiresDate = val.exp;
-    this.setDataFormat(val.exp);
-    this.jwtTokenInfo.isLoggedIn = true;
+  getJwtToken(): string {
+    return this.userJwtInfo.jwtToken;
+  }
+
+  getInfoFromToken(token) {
+    console.log(token);
+    let val = jwt_decode(token);
+    this.userJwtInfo.userName = val.sub;
+    this.userJwtInfo.hasRole = (val.auth[0].authority);
+    this.userJwtInfo.expiresDate = val.exp;
+    this.userJwtInfo.expiresDateToShow = this.setDataFormat(val.exp);
   }
 
   isLoggedIn(): boolean {
-    return this.jwtTokenInfo.isLoggedIn;
-  }
-
-  getTokenToRest():string {
-    if (this.isLoggedIn) {
-      return 'Bearer ' + this.jwtTokenInfo.jwtToken;
-    }
+    return this.userJwtInfo.isLogged;
   }
 
   logout() {
-    this.jwtTokenInfo = new JwtTokenInfo();
+    //
   }
-
-
 
   createAuthData(username: string, password: string): UserAuthInfo {
     const userData = {
@@ -61,10 +50,10 @@ export class AuthService {
     } as UserAuthInfo;
 
     return userData;
-
   }
 
-  setDataFormat(unix_timestamp): void {
+
+  setDataFormat(unix_timestamp): string {
     let actualDate = new Date(unix_timestamp * 1000);
     let year = actualDate.getFullYear();
     let month = (actualDate.getMonth() + 1) < 10 ? '0' + (actualDate.getMonth() + 1) : (actualDate.getMonth() + 1);
@@ -72,8 +61,8 @@ export class AuthService {
     let hour = actualDate.getHours();
     let min = actualDate.getMinutes() < 10 ? '0' + actualDate.getMinutes() : actualDate.getMinutes();
     let sec = actualDate.getSeconds();
-    let time = date + '/' + month + '/' + year + ' ' + hour + ':' + min + ':' + sec ;
-    this.jwtTokenInfo.expiresDateToShow = time;
+    let time = date + '/' + month + '/' + year + ' ' + hour + ':' + min + ':' + sec;
+    return time;
   }
 
 }
@@ -87,17 +76,11 @@ export interface JwtTokenDto {
   jwtToken: string;
 }
 
-export class JwtTokenInfo {
-  isLoggedIn: boolean = false;
+export class JwtUserInformation {
+  isLogged: boolean = false;
   jwtToken?: string;
   hasRole?: string;
-  name?: string;
+  userName?: string;
   expiresDate?: Date;
   expiresDateToShow?: string;
-
-   constructor() {}
-
-   setToken(token) {
-     this.jwtToken = token;
-   }
 }

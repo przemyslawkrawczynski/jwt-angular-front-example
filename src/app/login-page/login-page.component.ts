@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService, JwtTokenInfo } from '../service/auth.service';
+import { AuthService } from '../service/auth.service';
 import { NgForm } from '@angular/forms';
 import * as jwt_decode from 'jwt-decode';
 import { AdminDataService } from '../service/admin-data.service';
@@ -13,12 +13,12 @@ import { UserDataService } from '../service/user-data.service';
 })
 export class LoginPageComponent implements OnInit {
 
-  jwtToken: JwtTokenInfo = new JwtTokenInfo();
-  name: any;
-  role: string;
-  expDate: Date;
+  name: any = '';
+  hasRole: string = '';
+  expiresDate: Date = null;
   dateToShow: string = '';
-  roleAdminText: string;
+  roleAdminText: string = '';
+  jwtToken: string = 's';
 
 constructor(private authService: AuthService,
             private adminDataService: AdminDataService,
@@ -29,18 +29,24 @@ ngOnInit() {
 }
 
 login(formData: NgForm) {
-  this.authService.getAuth(formData.form.value.email, formData.form.value.password)
-    .subscribe(token => {
-      this.jwtToken.setToken(token.jwtToken.toString());
-    });
+  this.authService.getAuth(formData.form.value.username, formData.form.value.password).subscribe
+  (jwt => {
+    this.authService.userJwtInfo.jwtToken = jwt.jwtToken;
+    this.jwtToken = jwt.jwtToken;
+  });
+}
+
+actualizeInfo() {
+  return () => this.authService.getInfoFromToken(this.jwtToken);
 }
 
 showDecodedData() {
-  let val = jwt_decode(this.jwtToken.jwtToken);
-  this.jwtToken.name = val.sub;
-  this.jwtToken.hasRole = val.auth[0].authority;
-  this.jwtToken.expiresDate = val.exp;
-  this.getDataFormat(val.exp);
+  let info = this.actualizeInfo();
+  info();
+  this.name = this.authService.userJwtInfo.userName;
+  // this.hasRole = this.authService.getRole();
+  // this.expiresDate = this.authService.getExpiresDate();
+  // this.dateToShow = this.authService.getDateToShow();
 }
 
 
@@ -53,7 +59,6 @@ getDataFormat(unix_timestamp): void {
   let min = actualDate.getMinutes() < 10 ? '0' + actualDate.getMinutes() : actualDate.getMinutes();
   let sec = actualDate.getSeconds();
   let time = date + '/' + month + '/' + year + ' ' + hour + ':' + min + ':' + sec ;
-  console.log(time);
   this.dateToShow = time;
 }
 
@@ -62,6 +67,9 @@ signup() { }
 getDataAdminRole() {
   this.adminDataService.getAdminData().subscribe(data => {
     this.roleAdminText = data;
+  },
+  error => {
+    console.log(error);
   });
 }
 
