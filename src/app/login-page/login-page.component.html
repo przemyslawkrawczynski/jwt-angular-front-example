@@ -1,0 +1,28 @@
+<div class="container">
+  <hr>
+  <div class="row d-flex justify-content-center">
+    <div class="col-md-6">
+      <img src="/assets/images/logo_male.png">
+    </div>
+    <div class="col-md-6 d-flex justify-content-right border-left">
+      <form (ngSubmit)="login(formData)" #formData="ngForm">
+        <div class="form-group">
+          <label for="mail">Email address</label>
+          <input ngModel type="email" class="form-control" name="mail" aria-describedby="emailHelp" required>
+        </div>
+        <div class="form-group">
+          <label for="exampleInputPassword1">Password</label>
+          <input type="password" class="form-control" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]=formData.invalid>LogIn</button>
+      </form>
+    </div>
+  </div>
+  <hr>
+  <div>JWT Token: {{jwtToken.jwtToken}}</div>
+  <button (click)="showDecodedData()" class="btn-secondary">Show decoded Value</button>
+  <div *ngIf="jwtToken.name != null">User: {{jwtToken.name}}</div>
+  <div *ngIf="jwtToken.hasRole != null">Role: {{jwtToken.hasRole}}</div>
+  <div *ngIf="jwtToken.expiresDate != null">ExpiressDate: {{jwtToken.expiresDate}}</div>
+  <div>{{dateToShow}}</div>
+</div>
