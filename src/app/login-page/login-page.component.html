@@ -19,13 +19,13 @@
     </div>
   </div>
   <hr>
-  <div>JWT Token: {{jwtToken}}</div><BR>
-  <button (click)="showDecodedData()" class="btn-secondary">Show decoded Value</button>
-  <div *ngIf="jwtToken.name != null">User: {{jwtToken.name}}</div>
-  <div *ngIf="jwtToken.hasRole != null">Role: {{jwtToken.hasRole}}</div>
-  <div *ngIf="jwtToken.expiresDate != null">ExpiressDate: {{jwtToken.expiresDate}}</div>
+  <div *ngIf="jwtToken != ''"><b>JWT Token: </b>{{jwtToken}}</div><BR>
+  <button (click)="showDecodedData()" class="btn btn-secondary m-1">Show decoded value from JwtToken</button>
+  <div *ngIf="name != ''">User: {{name}}</div>
+  <div *ngIf="hasRole != ''">Role: {{hasRole}}</div>
+  <div *ngIf="expiresDate != null">ExpiressDate: {{expiresDate}}</div>
   <div>{{dateToShow}}</div><BR>
-    <div><button class-btn="btn-primary" (click)="getDataAdminRole()">Get data</button><BR>
+    <div><button class="btn btn-primary" (click)="getDataAdminRole()">Get data</button><BR>
       Data from server:</div>
     {{roleAdminText}}
 </div>

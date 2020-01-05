@@ -6,6 +6,7 @@ import { AdminDataService } from '../service/admin-data.service';
 import { UserDataService } from '../service/user-data.service';
 
 
+
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
@@ -18,7 +19,7 @@ export class LoginPageComponent implements OnInit {
   expiresDate: Date = null;
   dateToShow: string = '';
   roleAdminText: string = '';
-  jwtToken: string = 's';
+  jwtToken: string = '';
 
 constructor(private authService: AuthService,
             private adminDataService: AdminDataService,
@@ -29,24 +30,23 @@ ngOnInit() {
 }
 
 login(formData: NgForm) {
+
+  let user = this.authService.userJwtInfo;
   this.authService.getAuth(formData.form.value.username, formData.form.value.password).subscribe
   (jwt => {
-    this.authService.userJwtInfo.jwtToken = jwt.jwtToken;
+    user.jwtToken = jwt.jwtToken;
     this.jwtToken = jwt.jwtToken;
   });
 }
 
-actualizeInfo() {
-  return () => this.authService.getInfoFromToken(this.jwtToken);
-}
 
 showDecodedData() {
-  let info = this.actualizeInfo();
-  info();
-  this.name = this.authService.userJwtInfo.userName;
-  // this.hasRole = this.authService.getRole();
-  // this.expiresDate = this.authService.getExpiresDate();
-  // this.dateToShow = this.authService.getDateToShow();
+  let service = this.authService;
+  service.getInfoFromToken(this.jwtToken);
+  this.name = service.userJwtInfo.userName;
+  this.hasRole = service.userJwtInfo.hasRole;
+  this.expiresDate = service.userJwtInfo.epxDate;
+  this.getDataFormat(this.expiresDate);
 }
 
 
@@ -66,10 +66,10 @@ signup() { }
 
 getDataAdminRole() {
   this.adminDataService.getAdminData().subscribe(data => {
-    this.roleAdminText = data;
+    console.log(data);
   },
   error => {
-    console.log(error);
+    this.roleAdminText = 'Nie udało się pobrać danych:' + error;
   });
 }
 

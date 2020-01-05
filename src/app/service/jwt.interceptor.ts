@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -10,22 +10,23 @@ export class JwtInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // add authorization header with jwt token if available
 
-    let token = this.authServ.getJwtToken();
     let isLoggedin = this.authServ.isLoggedIn();
-
-    console.log(isLoggedin);
+    let token = 'Bearer ' + this.authServ.userJwtInfo.jwtToken;
+    var authReq = request.clone({
+      headers: new HttpHeaders({
+        'Authorization': token,
+        'Accept': '*/*',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*'
+      })
+    });
 
     if (isLoggedin) {
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      console.log('Intercepted HTTP call', authReq);
+      return next.handle(authReq);
     } else {
-      console.log("nie dotarlem do tego miejsca");
+
+      return next.handle(request);
     }
-
-    return next.handle(request);
   }
-
 }

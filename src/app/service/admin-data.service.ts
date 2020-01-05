@@ -15,7 +15,7 @@ export class AdminDataService {
 
   getAdminData(): Observable<string> {
 
-    return this.http.head<string>(this.dataURL);
+    return this.http.get<string>(this.dataURL);
   }
 
 

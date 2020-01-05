@@ -27,12 +27,12 @@ export class AuthService {
   }
 
   getInfoFromToken(token) {
-    console.log(token);
     let val = jwt_decode(token);
     this.userJwtInfo.userName = val.sub;
     this.userJwtInfo.hasRole = (val.auth[0].authority);
-    this.userJwtInfo.expiresDate = val.exp;
+    this.userJwtInfo.epxDate = val.exp;
     this.userJwtInfo.expiresDateToShow = this.setDataFormat(val.exp);
+    this.userJwtInfo.isLogged = true;
   }
 
   isLoggedIn(): boolean {
@@ -78,9 +78,9 @@ export interface JwtTokenDto {
 
 export class JwtUserInformation {
   isLogged: boolean = false;
-  jwtToken?: string;
-  hasRole?: string;
-  userName?: string;
-  expiresDate?: Date;
-  expiresDateToShow?: string;
+  jwtToken: string = '';
+  hasRole: string = ''
+  userName: string = '';
+  epxDate?: Date = null;
+  expiresDateToShow: string;
 }
