@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { LoginPageComponent } from '../login-page/login-page.component';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import * as jwt_decode from 'jwt-decode';
 
 
 const SIGNUP_URL: string = 'http://localhost:8080/users/signin';
@@ -11,7 +12,7 @@ const SIGNUP_URL: string = 'http://localhost:8080/users/signin';
 })
 export class AuthService {
 
-  jwtTokenInfo: JwtTokenClass = new JwtTokenClass();
+  jwtTokenInfo: JwtTokenInfo = new JwtTokenInfo();
 
 
   constructor(private http: HttpClient) { }
@@ -19,14 +20,37 @@ export class AuthService {
 
 
   getAuth(email: string, password: string): Observable<JwtTokenDto> {
-    return this.http.post<JwtTokenDto>(SIGNUP_URL, this.createAuthData(email, password));
+    let data: Observable<JwtTokenDto> = this.http.post<JwtTokenDto>(SIGNUP_URL, this.createAuthData(email, password));
+    data.subscribe(jwtToken => {
+      this.jwtTokenInfo.setToken(jwtToken);
+    })
+    this.getInfoFromToken();
+    console.log(JSON.stringify(this.jwtTokenInfo));
+    return data;
   }
 
-  getInfoFromToken() {}
+  getInfoFromToken() {
+    let val = jwt_decode(this.jwtTokenInfo.jwtToken);
+    this.jwtTokenInfo.name = val.sub;
+    this.jwtTokenInfo.hasRole = val.auth[0].authority;
+    this.jwtTokenInfo.expiresDate = val.exp;
+    this.setDataFormat(val.exp);
+    this.jwtTokenInfo.isLoggedIn = true;
+  }
 
-  signin() { }
+  isLoggedIn(): boolean {
+    return this.jwtTokenInfo.isLoggedIn;
+  }
 
-  logout() { }
+  getTokenToRest():string {
+    if (this.isLoggedIn) {
+      return 'Bearer ' + this.jwtTokenInfo.jwtToken;
+    }
+  }
+
+  logout() {
+    this.jwtTokenInfo = new JwtTokenInfo();
+  }
 
 
 
@@ -40,6 +64,18 @@ export class AuthService {
 
   }
 
+  setDataFormat(unix_timestamp): void {
+    let actualDate = new Date(unix_timestamp * 1000);
+    let year = actualDate.getFullYear();
+    let month = (actualDate.getMonth() + 1) < 10 ? '0' + (actualDate.getMonth() + 1) : (actualDate.getMonth() + 1);
+    let date = actualDate.getDate();
+    let hour = actualDate.getHours();
+    let min = actualDate.getMinutes() < 10 ? '0' + actualDate.getMinutes() : actualDate.getMinutes();
+    let sec = actualDate.getSeconds();
+    let time = date + '/' + month + '/' + year + ' ' + hour + ':' + min + ':' + sec ;
+    this.jwtTokenInfo.expiresDateToShow = time;
+  }
+
 }
 
 export interface UserAuthInfo {
@@ -51,15 +87,15 @@ export interface JwtTokenDto {
   jwtToken: string;
 }
 
-export class JwtTokenClass {
-
+export class JwtTokenInfo {
+  isLoggedIn: boolean = false;
   jwtToken?: string;
   hasRole?: string;
   name?: string;
   expiresDate?: Date;
+  expiresDateToShow?: string;
+
    constructor() {}
-
-
 
    setToken(token) {
      this.jwtToken = token;

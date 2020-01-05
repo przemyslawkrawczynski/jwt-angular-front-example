@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService, JwtTokenClass } from '../service/auth.service';
+import { AuthService, JwtTokenInfo } from '../service/auth.service';
 import { NgForm } from '@angular/forms';
 import * as jwt_decode from 'jwt-decode';
+import { AdminDataService } from '../service/admin-data.service';
+import { UserDataService } from '../service/user-data.service';
+
 
 @Component({
   selector: 'app-login-page',
@@ -10,13 +13,16 @@ import * as jwt_decode from 'jwt-decode';
 })
 export class LoginPageComponent implements OnInit {
 
-  jwtToken: JwtTokenClass = new JwtTokenClass();
+  jwtToken: JwtTokenInfo = new JwtTokenInfo();
   name: any;
   role: string;
   expDate: Date;
   dateToShow: string = '';
+  roleAdminText: string;
 
-constructor(private authService: AuthService) { }
+constructor(private authService: AuthService,
+            private adminDataService: AdminDataService,
+            private userDataService: UserDataService) { }
 
 
 ngOnInit() {
@@ -32,11 +38,11 @@ login(formData: NgForm) {
 showDecodedData() {
   let val = jwt_decode(this.jwtToken.jwtToken);
   this.jwtToken.name = val.sub;
-  console.log(val.sub)
   this.jwtToken.hasRole = val.auth[0].authority;
   this.jwtToken.expiresDate = val.exp;
   this.getDataFormat(val.exp);
 }
+
 
 getDataFormat(unix_timestamp): void {
   let actualDate = new Date(unix_timestamp * 1000);
@@ -52,4 +58,11 @@ getDataFormat(unix_timestamp): void {
 }
 
 signup() { }
+
+getDataAdminRole() {
+  this.adminDataService.getAdminData().subscribe(data => {
+    this.roleAdminText = data;
+  });
+}
+
 }
